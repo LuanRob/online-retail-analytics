@@ -118,3 +118,13 @@ Estrutura em camadas (padrão medallion adaptado):
 2. Validação cruzada entre as duas implementações (mesmos resultados)
 3. Análises descritivas nos notebooks 03, 04, 05
 4. Dashboard Streamlit consolidando as 3 análises
+
+
+
+## Validação pós-pipeline
+
+Após implementação do pipeline e remoção de duplicatas:
+
+- Adjustments finais: 5.497 linhas
+- Cancellations finais: 18.049 linhas
+- Transactions finais: 1.003.503 linhas
