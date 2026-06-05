@@ -50,28 +50,28 @@ def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # Separar adjustments
-def split_adjustments(df: pd.DataFrame) -> pd.DataFrame:
+def split_adjustments(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Separar stockodes não-produto.
+    Separa linhas de StockCodes não-produto (POST, DOT, M, etc.).
+    Retorna (transactions, adjustments).
     """
-
     mask = df["StockCode"].isin(NON_PRODUCT_STOCKCODES)
     adjustments = df[mask].copy()
-    transcations = df[~mask].copy()
-    print(f"adjustments: {len(adjustments)}:,")
+    transactions = df[~mask].copy()
+    print(f"Adjustments separados: {len(adjustments):,}")
+    return transactions, adjustments
 
-    return transcations, adjustments
 
 # Separar cancelamentos
-def split_cancellations(df: pd.DataFrame) -> pd.DataFrame:
+def split_cancellations(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Separar Invoices de cancelamento.
+    Separa Invoices com prefixo 'C' (cancelamentos).
+    Retorna (transactions, cancellations).
     """
     mask = df["Invoice"].str.startswith("C", na=False)
     cancellations = df[mask].copy()
     transactions = df[~mask].copy()
-    print(f"Cancelamentos: {len(cancellations)}")
-
+    print(f"Cancelamentos separados: {len(cancellations):,}")
     return transactions, cancellations
 
 # Limpeza final de transações
@@ -92,20 +92,23 @@ def clean_transactions(df: pd.DataFrame) -> pd.DataFrame:
 # Enriquecimento de dados
 def enrich_data(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Criar colunas derivadas
+    Cria colunas derivadas para análise downstream.
     """
+    df = df.copy()
+
     df["Revenue"] = df["Quantity"] * df["Price"]
-    
+
+    # Timestamp do primeiro dia do mês.
+    # Mantém semântica temporal (ordenação, filtros, agregação) e é
+    # consistente com cohort_analysis.add_invoice_month, evitando
+    # conversão dupla quando os dois pipelines forem cruzados.
     df["InvoiceYearMonth"] = (
         df["InvoiceDate"]
         .dt.to_period("M")
-        .astype(str)
+        .dt.to_timestamp()
     )
 
-    df["CustomerIDFlag"] = (
-        df["CustomerID"]
-        .notna()
-    )
+    df["CustomerIDFlag"] = df["CustomerID"].notna()
 
     return df
 
