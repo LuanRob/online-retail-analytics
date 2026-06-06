@@ -2,11 +2,9 @@ from pathlib import Path
 
 from src import config
 
-
 def test_base_dir_matches_project_root():
-    expected_base_dir = Path(__file__).resolve().parent
+    expected_base_dir = Path(__file__).resolve().parent.parent
     assert config.BASE_DIR == expected_base_dir
-
 
 def test_data_directories_are_derived_from_base_dir():
     assert config.DATA_DIR == config.BASE_DIR / "data"
